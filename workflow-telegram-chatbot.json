@@ -1,0 +1,251 @@
+{
+  "name": "Telegram Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e97c7e01-0fa8-4936-a92e-823e6ef19b13",
+      "name": "Telegram Trigger",
+      "webhookId": "079b2efa-27ba-4a11-961f-c9fbbb985404",
+      "alwaysOutputData": false,
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_BOT_TOKEN",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.queue }}"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "pt_br"
+            },
+            {
+              "name": "appid",
+              "value": "OPENWEATHER_API_KEY"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        80
+      ],
+      "id": "26a31bd9-f187-484b-9ab4-69e2d879e00a",
+      "name": "HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74d63248-17c0-416f-b8e0-36754119b52d",
+              "name": "message.text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "06deba53-75f7-4837-a22b-e0e6574e147f",
+              "name": "queue",
+              "value": "={{ $json.message.text.toLowerCase().trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '') }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "172640a5-d676-44fe-914c-fb69d56fb6eb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e17b0b76-2527-4d86-8d12-21609963484c",
+              "leftValue": "={{ $json.cod }}",
+              "rightValue": "=200",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "0ec7545f-fbc9-484a-aa3e-51aa8e212925",
+              "leftValue": "={{ $json.main.temp }}",
+              "rightValue": null,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        736,
+        80
+      ],
+      "id": "6c2200d6-4b65-412f-a701-d75022d049d3",
+      "name": "If",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "=🌤️ Em {{ $json.name }} esta {{ $json.weather[0].description }} e a temperatura é de {{ Math.round($json.main.temp) }}°C, mas a sensação térmica é de {{ Math.round($json.main.feels_like) }}°C",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        -96
+      ],
+      "id": "f4eb254f-f867-46df-9eb2-1b7e9d8bc3a4",
+      "name": "Send a text message",
+      "webhookId": "929b8fa9-9633-4bb7-aa9c-722392e5da82",
+      "credentials": {
+        "telegramApi": {
+          "id": "yrA3mitRZp3lKh8t",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "❌ Cidade não encontrada. Use o formato Cidade,UF,BR (ex.: São Paulo,SP,BR).",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        208
+      ],
+      "id": "e3ab8d10-02e7-434d-9477-69ccf74a62f8",
+      "name": "Send a text message1",
+      "webhookId": "8de1f233-a4ef-4190-8a63-4be43fc083a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "yrA3mitRZp3lKh8t",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ec8bf1c2-707e-428b-810f-42c1442ef3a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dfeb7e60c08b2a7dd7f33090e61a5776ee74dc3e3d966a5134ef6d64d8971611"
+  },
+  "id": "gMQKdxmNeL10FJ95",
+  "tags": []
+}
