@@ -6,3 +6,5 @@ Baixe o arquivo workflow-telegram-chatbot.json
 Edite o arquivo para inserir as veriáveis OPENWEATHER_API_KEY, TELEGRAM_BOT_TOKEN
 
 Importe o arquivo já editado workflow-telegram-chatbot.json no N8M selecionando os três pontos no canto superior direito e, em seguida, selecione Importar do Arquivo (para importar um fluxo de trabalho como um arquivo JSON).
+
+Para utilizar o chatbot, enviar uma menagem via telegram para @Clima_ftrbot com o nome de uma cidade para receber as informações sobre o clima.
